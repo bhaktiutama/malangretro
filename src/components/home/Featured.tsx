@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
@@ -123,35 +124,36 @@ export default function Featured() {
                             if (!isVisible) return null;
 
                             return (
-                                <motion.div
-                                    key={item.id}
-                                    className={styles.card}
-                                    initial={false}
-                                    animate={style}
-                                    transition={{ duration: 0.5, ease: "easeInOut" }}
-                                    whileHover={{ y: -10 }}
-                                >
-                                    <div className={styles.badge}>{item.tag}</div>
-                                    <div className={styles.cardImage}>
-                                        <Image
-                                            src={item.image}
-                                            alt={item.title}
-                                            fill
-                                            style={{ objectFit: "cover" }}
-                                            sizes="(max-width: 768px) 100vw, 350px"
-                                        />
-                                    </div>
-                                    <div className={styles.cardContent}>
-                                        <div>
-                                            <h3 className={styles.cardTitle}>{item.title}</h3>
-                                            <div className={styles.cardLocation}>
-                                                <MapPin size={14} />
-                                                {item.location}
-                                            </div>
+                                <Link href="/feed?filter=event" key={item.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    <motion.div
+                                        className={styles.card}
+                                        initial={false}
+                                        animate={style}
+                                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                                        whileHover={{ y: -10 }}
+                                    >
+                                        <div className={styles.badge}>{item.tag}</div>
+                                        <div className={styles.cardImage}>
+                                            <Image
+                                                src={item.image}
+                                                alt={item.title}
+                                                fill
+                                                style={{ objectFit: "cover" }}
+                                                sizes="(max-width: 768px) 100vw, 350px"
+                                            />
                                         </div>
-                                        <div className={styles.cardDate}>{item.date}</div>
-                                    </div>
-                                </motion.div>
+                                        <div className={styles.cardContent}>
+                                            <div>
+                                                <h3 className={styles.cardTitle}>{item.title}</h3>
+                                                <div className={styles.cardLocation}>
+                                                    <MapPin size={14} />
+                                                    {item.location}
+                                                </div>
+                                            </div>
+                                            <div className={styles.cardDate}>{item.date}</div>
+                                        </div>
+                                    </motion.div>
+                                </Link>
                             );
                         })}
                     </AnimatePresence>

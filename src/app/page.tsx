@@ -4,7 +4,6 @@ import Hero from "@/components/home/Hero";
 import Featured from "@/components/home/Featured";
 import Trending from "@/components/home/Trending";
 import FoodSpots from "@/components/home/FoodSpots";
-import Testimonials from "@/components/home/Testimonials";
 
 export default function Home() {
   return (
@@ -36,8 +35,6 @@ export default function Home() {
             </span>
           </div>
         </section>
-
-        <Testimonials />
       </div>
 
       <Footer />

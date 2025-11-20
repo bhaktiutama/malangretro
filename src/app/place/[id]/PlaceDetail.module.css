@@ -5,25 +5,26 @@
 }
 
 .header {
-    margin-bottom: 40px;
     text-align: center;
+    margin-bottom: 40px;
 }
 
 .title {
     font-family: var(--font-bebas);
     font-size: 4rem;
-    color: var(--color-primary);
+    color: var(--color-accent-brown);
     margin-bottom: 10px;
     line-height: 1;
 }
 
 .meta {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
     font-family: var(--font-inter);
+    font-size: 0.9rem;
     color: var(--color-text-muted);
-    font-size: 1.1rem;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
 }
 
 .gallery {
@@ -38,7 +39,7 @@
     position: relative;
     border-radius: var(--radius-md);
     overflow: hidden;
-    border: 4px solid #fff;
+    border: 3px solid var(--color-accent-brown);
     box-shadow: var(--shadow-md);
 }
 
@@ -51,21 +52,22 @@
 .sideImage {
     border-radius: var(--radius-md);
     overflow: hidden;
-    border: 4px solid #fff;
-    box-shadow: var(--shadow-sm);
+    border: 3px solid var(--color-accent-brown);
+    box-shadow: var(--shadow-md);
 }
 
 .contentGrid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 60px;
+    gap: 40px;
+    margin-bottom: 60px;
 }
 
 .description {
     font-family: var(--font-inter);
     font-size: 1.1rem;
     line-height: 1.8;
-    color: var(--color-text-main);
+    color: var(--color-text);
 }
 
 .description p {
@@ -166,6 +168,10 @@
 }
 
 @media (max-width: 768px) {
+    .title {
+        font-size: 2.5rem;
+    }
+
     .gallery {
         grid-template-columns: 1fr;
         height: auto;
@@ -191,6 +197,5 @@
     .infoCard {
         position: static;
         transform: none;
-        margin-top: 40px;
     }
 }

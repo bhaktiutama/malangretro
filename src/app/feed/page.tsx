@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import FeedLayout from '@/components/feed/FeedLayout';
@@ -12,7 +13,13 @@ import { feedPosts } from '@/lib/feedData';
 import styles from './feed.module.css';
 
 export default function FeedPage() {
-    const [activeFilter, setActiveFilter] = useState('all');
+    const searchParams = useSearchParams();
+    const filterParam = searchParams.get('filter') || 'all';
+    const [activeFilter, setActiveFilter] = useState(filterParam);
+
+    useEffect(() => {
+        setActiveFilter(filterParam);
+    }, [filterParam]);
 
     const filteredPosts = feedPosts.filter(post => {
         if (activeFilter === 'all') return true;

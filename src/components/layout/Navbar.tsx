@@ -32,9 +32,9 @@ export default function Navbar() {
                 </Link>
 
                 <div className={styles.navLinks}>
-                    <Link href="/events" className={styles.link}>Events</Link>
-                    <Link href="/culinary" className={styles.link}>Culinary</Link>
-                    <Link href="/places" className={styles.link}>Places</Link>
+                    <Link href="/feed?filter=event" className={styles.link}>Events</Link>
+                    <Link href="/feed?filter=food" className={styles.link}>Culinary</Link>
+                    <Link href="/feed?filter=place" className={styles.link}>Places</Link>
                     <Link href="/about" className={styles.link}>About</Link>
                 </div>
 

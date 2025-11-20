@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Star } from "lucide-react";
 import styles from "./FoodSpots.module.css";
 import { cn } from "@/lib/utils";
@@ -69,7 +70,8 @@ export default function FoodSpots() {
 
                 <div className={styles.bentoGrid}>
                     {FOOD_SPOTS.map((item) => (
-                        <div
+                        <Link 
+                            href={`/food/${item.id}`}
                             key={item.id}
                             className={cn(
                                 styles.item,
@@ -77,6 +79,7 @@ export default function FoodSpots() {
                                 item.size === "wide" && styles.itemWide,
                                 item.size === "tall" && styles.itemTall
                             )}
+                            style={{ textDecoration: 'none', color: 'inherit' }}
                         >
                             <div className={styles.rating}>
                                 <Star size={14} fill="currentColor" /> {item.rating}
@@ -95,7 +98,7 @@ export default function FoodSpots() {
                                 <span className={styles.itemCategory}>{item.category}</span>
                                 <h3 className={styles.itemName}>{item.name}</h3>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>
