@@ -2,7 +2,11 @@ import React from 'react';
 import Link from 'next/link';
 import styles from '@/app/feed/feed.module.css';
 
-export default function FeedSidebar() {
+interface FeedSidebarProps {
+    onPostClick?: () => void;
+}
+
+export default function FeedSidebar({ onPostClick }: FeedSidebarProps) {
     const navItems = [
         { label: 'Home', icon: '🏠', href: '/' },
         { label: 'Explore', icon: '🌍', href: '/feed' },
@@ -27,7 +31,7 @@ export default function FeedSidebar() {
                 ))}
             </nav>
 
-            <button className={styles.postButton}>
+            <button className={styles.postButton} onClick={onPostClick}>
                 Post Event / Food
             </button>
 

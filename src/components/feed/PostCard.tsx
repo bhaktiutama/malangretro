@@ -16,23 +16,53 @@ export default function PostCard({ post }: PostCardProps) {
         }
     };
 
+    const getContributorBadgeEmoji = (badge?: 'verified' | 'expert') => {
+        if (badge === 'expert') return '⭐';
+        if (badge === 'verified') return '✓';
+        return '';
+    };
+
     return (
         <div className={styles.postCard}>
             {/* Header */}
             <div className={styles.postHeader}>
                 <div className={styles.authorInfo}>
                     <div className={styles.avatar}>
-                        <img src={post.author.avatar} alt={post.author.name} />
+                        {/* Show venue initial or category icon */}
+                        <div style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            fontSize: '24px',
+                            fontWeight: 'bold',
+                            color: 'white'
+                        }}>
+                            {post.type === 'event' ? '🎉' : post.type === 'food' ? '🍜' : '📍'}
+                        </div>
                     </div>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <h3 className={styles.authorName}>{post.author.name}</h3>
-                            <span className={styles.authorHandle}>{post.author.handle}</span>
+                            <h3 className={styles.authorName}>{post.title}</h3>
+                            {post.verified && <span style={{ color: '#1DA1F2' }}>✓</span>}
+                            {post.isOfficial && <span style={{ color: '#FFD700' }}>⭐</span>}
+                            {post.trending && <span style={{ color: '#FF6B6B' }}>🔥</span>}
                         </div>
                         <div className={styles.postMeta}>
                             <span>{post.timestamp}</span>
                             <span>•</span>
-                            {post.location && <span>📍 {post.location}</span>}
+                            <span>📍 {post.location}</span>
+                            {!post.isAnonymous && post.contributor && (
+                                <>
+                                    <span>•</span>
+                                    <span>
+                                        {getContributorBadgeEmoji(post.contributor.badge)} 
+                                        {post.contributor.contributionCount} contributions
+                                    </span>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -71,22 +101,24 @@ export default function PostCard({ post }: PostCardProps) {
                 </div>
             )}
 
-            {/* Footer Actions */}
+            {/* Footer Actions - Community Metrics */}
             <div className={styles.postActions}>
                 <button className={styles.actionBtn}>
-                    <span>❤️</span>
-                    <span>{post.likes}</span>
+                    <span>👍</span>
+                    <span>{post.helpfulVotes}</span>
                 </button>
 
                 <button className={styles.actionBtn}>
-                    <span>💬</span>
-                    <span>{post.comments}</span>
+                    <span>👁️</span>
+                    <span>{post.views}</span>
                 </button>
 
-                <button className={styles.actionBtn}>
-                    <span>🔄</span>
-                    <span>{post.shares}</span>
-                </button>
+                {post.visitCount !== undefined && (
+                    <button className={styles.actionBtn}>
+                        <span>📍</span>
+                        <span>{post.visitCount}</span>
+                    </button>
+                )}
 
                 <button className={styles.actionBtn}>
                     <span>📤</span>
