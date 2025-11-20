@@ -1,0 +1,183 @@
+.hero {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #87CEEB;
+    /* Sky Blue base */
+}
+
+.sunburst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200vmax;
+    height: 200vmax;
+    background: repeating-conic-gradient(from 0deg,
+            var(--color-background) 0deg 15deg,
+            rgba(255, 248, 231, 0.5) 15deg 30deg);
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    animation: rotate 60s linear infinite;
+    opacity: 0.3;
+}
+
+@keyframes rotate {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+.mountains {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, var(--color-accent-brown), transparent);
+    z-index: 1;
+}
+
+/* Placeholder for mountain illustration */
+.mountainShape {
+    position: absolute;
+    bottom: -50px;
+    width: 100%;
+    height: auto;
+    z-index: 2;
+}
+
+.content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    width: 100%;
+    max-width: 800px;
+    padding: 0 20px;
+}
+
+.title {
+    font-family: var(--font-bebas);
+    font-size: clamp(4rem, 10vw, 8rem);
+    color: var(--color-primary);
+    text-shadow: 4px 4px 0px #fff, 8px 8px 0px var(--color-accent-brown);
+    margin-bottom: 1rem;
+    line-height: 0.9;
+    transform: rotate(-2deg);
+}
+
+.subtitle {
+    font-family: var(--font-pacifico);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: var(--color-accent-brown);
+    margin-bottom: 3rem;
+    text-shadow: 2px 2px 0px #fff;
+}
+
+.searchContainer {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 3px solid var(--color-accent-brown);
+    transform: rotate(1deg);
+    transition: transform 0.3s ease;
+}
+
+.searchContainer:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+.searchBar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.searchInput {
+    flex: 1;
+    padding: 15px;
+    font-size: 1.1rem;
+    border: 2px solid var(--color-accent-brown);
+    border-radius: var(--radius-md);
+    font-family: var(--font-inter);
+    outline: none;
+}
+
+.searchInput:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(232, 93, 61, 0.2);
+}
+
+.searchButton {
+    background: var(--color-primary);
+    color: #fff;
+    border: 2px solid var(--color-accent-brown);
+    padding: 0 30px;
+    font-family: var(--font-bebas);
+    font-size: 1.2rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.searchButton:hover {
+    background: var(--color-accent-mustard);
+    transform: translateY(-2px);
+}
+
+.toggles {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.toggleLabel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-bebas);
+    font-size: 1.1rem;
+    color: var(--color-accent-brown);
+    cursor: pointer;
+}
+
+.toggleCheckbox {
+    appearance: none;
+    width: 40px;
+    height: 20px;
+    background: #ddd;
+    border-radius: 20px;
+    position: relative;
+    border: 2px solid var(--color-accent-brown);
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.toggleCheckbox::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background: var(--color-accent-brown);
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+.toggleCheckbox:checked {
+    background: var(--color-secondary);
+}
+
+.toggleCheckbox:checked::after {
+    transform: translateX(20px);
+    background: #fff;
+}
