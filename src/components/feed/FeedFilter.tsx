@@ -16,7 +16,7 @@ export default function FeedFilter({ activeFilter, onFilterChange }: FeedFilterP
 
     return (
         <div className={styles.filterContainer}>
-            <div className={`${styles.filterBar} glass-panel`} style={{ borderRadius: 'var(--radius-full)' }}>
+            <div className={`${styles.filterBar} glass-panel`} style={{ borderRadius: 'var(--radius-md)' }}>
                 {filters.map((filter) => (
                     <button
                         key={filter.id}

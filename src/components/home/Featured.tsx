@@ -62,48 +62,53 @@ export default function Featured() {
     };
 
     const getCardStyle = (index: number) => {
-        const diff = (index - activeIndex + FEATURED_ITEMS.length) % FEATURED_ITEMS.length;
+        const total = FEATURED_ITEMS.length;
+        // Calculate distance from active index, handling wrap-around
+        let diff = (index - activeIndex + total) % total;
+
+        // Adjust diff to be -1, 0, 1 for the immediate neighbors
+        if (diff > total / 2) diff -= total;
 
         // Center item
         if (diff === 0) {
             return {
                 zIndex: 10,
-                x: 0,
+                x: "0%",
                 scale: 1,
                 opacity: 1,
-                rotateY: 0
+                display: "block"
             };
         }
 
-        // Right item
-        if (diff === 1 || diff === - (FEATURED_ITEMS.length - 1)) {
+        // Right item (next)
+        if (diff === 1) {
             return {
                 zIndex: 5,
-                x: 150,
+                x: "60%", // Push to right
                 scale: 0.85,
-                opacity: 0.7,
-                rotateY: -15
+                opacity: 0.6,
+                display: "block"
             };
         }
 
-        // Left item
-        if (diff === FEATURED_ITEMS.length - 1 || diff === -1) {
+        // Left item (prev)
+        if (diff === -1 || diff === total - 1) {
             return {
                 zIndex: 5,
-                x: -150,
+                x: "-60%", // Push to left
                 scale: 0.85,
-                opacity: 0.7,
-                rotateY: 15
+                opacity: 0.6,
+                display: "block"
             };
         }
 
         // Others hidden
         return {
             zIndex: 0,
-            x: 0,
+            x: "0%",
             scale: 0.5,
             opacity: 0,
-            rotateY: 0
+            display: "none"
         };
     };
 
@@ -114,24 +119,19 @@ export default function Featured() {
                     <h2 className={styles.title}>Featured This Week</h2>
                 </div>
 
-                <div className={styles.carouselContainer}>
-                    <AnimatePresence initial={false}>
-                        {FEATURED_ITEMS.map((item, index) => {
-                            const style = getCardStyle(index);
-                            // Only render visible items (center, left, right)
-                            const isVisible = style.opacity > 0;
-
-                            if (!isVisible) return null;
-
-                            return (
-                                <Link href="/feed?filter=event" key={item.id} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                    <motion.div
-                                        className={styles.card}
-                                        initial={false}
-                                        animate={style}
-                                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                                        whileHover={{ y: -10 }}
-                                    >
+                <div className={styles.carouselWrapper}>
+                    {FEATURED_ITEMS.map((item, index) => {
+                        const style = getCardStyle(index);
+                        return (
+                            <motion.div
+                                key={item.id}
+                                className={styles.cardWrapper}
+                                initial={false}
+                                animate={style}
+                                transition={{ duration: 0.4, ease: "easeInOut" }}
+                            >
+                                <Link href="/feed?filter=event" className={styles.cardLink}>
+                                    <div className={styles.card}>
                                         <div className={styles.badge}>{item.tag}</div>
                                         <div className={styles.cardImage}>
                                             <Image
@@ -139,7 +139,7 @@ export default function Featured() {
                                                 alt={item.title}
                                                 fill
                                                 style={{ objectFit: "cover" }}
-                                                sizes="(max-width: 768px) 100vw, 350px"
+                                                sizes="(max-width: 768px) 100vw, 400px"
                                             />
                                         </div>
                                         <div className={styles.cardContent}>
@@ -152,17 +152,27 @@ export default function Featured() {
                                             </div>
                                             <div className={styles.cardDate}>{item.date}</div>
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 </Link>
-                            );
-                        })}
-                    </AnimatePresence>
+                            </motion.div>
+                        );
+                    })}
                 </div>
 
                 <div className={styles.controls}>
                     <button className={styles.controlBtn} onClick={prevSlide} aria-label="Previous">
                         <ArrowLeft size={24} />
                     </button>
+                    <div className={styles.dots}>
+                        {FEATURED_ITEMS.map((_, index) => (
+                            <button
+                                key={index}
+                                className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ''}`}
+                                onClick={() => setActiveIndex(index)}
+                                aria-label={`Go to slide ${index + 1}`}
+                            />
+                        ))}
+                    </div>
                     <button className={styles.controlBtn} onClick={nextSlide} aria-label="Next">
                         <ArrowRight size={24} />
                     </button>
