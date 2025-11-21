@@ -427,3 +427,17 @@
         display: block;
     }
 }
+
+.cardLink {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.activeAction {
+    color: var(--color-primary);
+}
+
+.activeAction svg {
+    fill: currentColor;
+}

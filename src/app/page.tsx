@@ -4,17 +4,25 @@ import Hero from "@/components/home/Hero";
 import Featured from "@/components/home/Featured";
 import Trending from "@/components/home/Trending";
 import FoodSpots from "@/components/home/FoodSpots";
+import { getPosts } from "@/lib/api/posts";
 
-export default function Home() {
+export const revalidate = 3600; // Revalidate every hour
+
+export default async function Home() {
+  // Fetch data for sections
+  const featuredPosts = await getPosts({ limit: 5, trending: true });
+  const trendingEvents = await getPosts({ type: 'event', limit: 6, orderBy: 'views', orderDirection: 'desc' });
+  const foodSpots = await getPosts({ type: 'food', limit: 6, orderBy: 'helpful_votes', orderDirection: 'desc' });
+
   return (
     <main>
       <Navbar />
       <Hero />
 
       <div style={{ position: "relative", zIndex: 10, background: "var(--color-background)" }}>
-        <Featured />
-        <Trending />
-        <FoodSpots />
+        <Featured posts={featuredPosts} />
+        <Trending posts={trendingEvents} />
+        <FoodSpots posts={foodSpots} />
 
         <section className="container" style={{ padding: "100px 20px", textAlign: "center" }}>
           <h2 style={{ fontSize: "3rem", marginBottom: "40px", color: "var(--color-primary)" }}>

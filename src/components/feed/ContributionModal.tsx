@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
-import { PostType } from '@/lib/feedData';
-import styles from './ContributionModal.module.css';
+"use client";
+
+import { useState, useEffect } from "react";
+import { X, Upload, MapPin, Calendar, Clock, DollarSign, Tag, Plus, Utensils, Camera, Info } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import styles from "./ContributionModal.module.css";
+import { createPostAction, createPostImagesAction } from "@/app/actions/posts";
+import type { CreatePostData } from "@/lib/api/posts";
+import type { PostType } from "@/lib/feedData";
 
 interface ContributionModalProps {
     isOpen: boolean;
@@ -8,655 +14,367 @@ interface ContributionModalProps {
 }
 
 export default function ContributionModal({ isOpen, onClose }: ContributionModalProps) {
-    const [category, setCategory] = useState<PostType>('event');
+    const [activeTab, setActiveTab] = useState<PostType>('event');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [imageUrls, setImageUrls] = useState<string>("");
 
     // Common fields
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [location, setLocation] = useState('');
-    const [facilities, setFacilities] = useState('');
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [location, setLocation] = useState("");
+    const [tags, setTags] = useState("");
+    const [openingHours, setOpeningHours] = useState("");
+    const [priceRange, setPriceRange] = useState("");
 
-    // Event-specific fields
-    const [eventType, setEventType] = useState('');
-    const [eventDate, setEventDate] = useState('');
-    const [eventTimeStart, setEventTimeStart] = useState('');
-    const [eventTimeEnd, setEventTimeEnd] = useState('');
-    const [eventPrice, setEventPrice] = useState('');
-    const [eventCapacity, setEventCapacity] = useState('');
-    const [eventOrganizer, setEventOrganizer] = useState('');
+    // Event fields
+    const [eventDate, setEventDate] = useState("");
+    const [eventTime, setEventTime] = useState("");
+    const [organizer, setOrganizer] = useState("");
 
-    // Food-specific fields
-    const [venueName, setVenueName] = useState('');
-    const [cuisineType, setCuisineType] = useState('');
-    const [openingHours, setOpeningHours] = useState('');
-    const [priceRange, setPriceRange] = useState('');
-    const [reservationRequired, setReservationRequired] = useState(false);
-    const [parkingAvailable, setParkingAvailable] = useState(false);
-    const [paymentCash, setPaymentCash] = useState(false);
-    const [paymentCard, setPaymentCard] = useState(false);
-    const [paymentEWallet, setPaymentEWallet] = useState(false);
+    // Food fields
+    const [cuisineType, setCuisineType] = useState("");
+    const [reservationInfo, setReservationInfo] = useState("");
 
-    // Place-specific fields
-    const [placeName, setPlaceName] = useState('');
-    const [placeCategory, setPlaceCategory] = useState('');
-    const [placeOpeningHours, setPlaceOpeningHours] = useState('');
-    const [entranceFee, setEntranceFee] = useState('');
-    const [bestTimeToVisit, setBestTimeToVisit] = useState('');
-    const [instagramWorthy, setInstagramWorthy] = useState(false);
-    const [accessibility, setAccessibility] = useState('');
-
-    const handleCategoryChange = (newCategory: PostType) => {
-        setCategory(newCategory);
-        // Reset all fields when category changes
-        resetAllFields();
-    };
+    // Place fields
+    const [entranceFee, setEntranceFee] = useState("");
+    const [bestSeason, setBestSeason] = useState("");
 
     const resetAllFields = () => {
-        setTitle('');
-        setDescription('');
-        setLocation('');
-        setFacilities('');
-        // Event
-        setEventType('');
-        setEventDate('');
-        setEventTimeStart('');
-        setEventTimeEnd('');
-        setEventPrice('');
-        setEventCapacity('');
-        setEventOrganizer('');
-        // Food
-        setVenueName('');
-        setCuisineType('');
-        setOpeningHours('');
-        setPriceRange('');
-        setReservationRequired(false);
-        setParkingAvailable(false);
-        setPaymentCash(false);
-        setPaymentCard(false);
-        setPaymentEWallet(false);
-        // Place
-        setPlaceName('');
-        setPlaceCategory('');
-        setPlaceOpeningHours('');
-        setEntranceFee('');
-        setBestTimeToVisit('');
-        setInstagramWorthy(false);
-        setAccessibility('');
+        setTitle("");
+        setContent("");
+        setLocation("");
+        setTags("");
+        setOpeningHours("");
+        setPriceRange("");
+        setEventDate("");
+        setEventTime("");
+        setOrganizer("");
+        setCuisineType("");
+        setReservationInfo("");
+        setEntranceFee("");
+        setBestSeason("");
+        setImageUrls("");
+        setError(null);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        const baseData = {
-            category,
-            description,
-            location,
-            facilities: facilities.split(',').map(f => f.trim()).filter(Boolean),
-        };
-
-        let submissionData;
-
-        if (category === 'event') {
-            submissionData = {
-                ...baseData,
-                title,
-                eventType,
-                date: eventDate,
-                timeStart: eventTimeStart,
-                timeEnd: eventTimeEnd,
-                price: eventPrice,
-                capacity: eventCapacity,
-                organizer: eventOrganizer,
-            };
-        } else if (category === 'food') {
-            const paymentMethods = [];
-            if (paymentCash) paymentMethods.push('Cash');
-            if (paymentCard) paymentMethods.push('Card');
-            if (paymentEWallet) paymentMethods.push('E-Wallet');
-
-            submissionData = {
-                ...baseData,
-                venueName,
-                cuisineType,
-                openingHours,
-                priceRange,
-                reservationRequired,
-                parkingAvailable,
-                paymentMethods,
-            };
-        } else { // place
-            submissionData = {
-                ...baseData,
-                placeName,
-                placeCategory,
-                openingHours: placeOpeningHours,
-                entranceFee,
-                bestTimeToVisit,
-                instagramWorthy,
-                accessibility,
-            };
-        }
-
-        console.log('Contribution submitted:', submissionData);
-        alert('Thank you for your contribution! It will be reviewed before publishing.');
-
+    // Reset form when tab changes
+    useEffect(() => {
         resetAllFields();
-        onClose();
+    }, [activeTab]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError(null);
+
+        try {
+            const postData: CreatePostData = {
+                type: activeTab,
+                title,
+                content,
+                location,
+                tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+                opening_hours: openingHours,
+                price_range: priceRange,
+
+                // Event specific
+                ...(activeTab === 'event' && {
+                    event_date: eventDate,
+                    event_start_time: eventTime,
+                    organizer
+                }),
+
+                // Food specific
+                ...(activeTab === 'food' && {
+                    cuisine_type: cuisineType,
+                    reservation_info: reservationInfo
+                }),
+
+                // Place specific
+                ...(activeTab === 'place' && {
+                    entrance_fee: entranceFee,
+                    best_season: bestSeason
+                })
+            };
+
+            const newPost = await createPostAction(postData);
+
+            // Handle images if any
+            if (imageUrls.trim()) {
+                const urls = imageUrls.split(',').map(url => url.trim()).filter(Boolean);
+                if (urls.length > 0) {
+                    await createPostImagesAction(newPost.id, urls);
+                }
+            }
+
+            resetAllFields();
+            onClose();
+        } catch (err: any) {
+            console.error("Failed to create post:", err);
+            setError(err.message || "Failed to create post. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (!isOpen) return null;
 
-    const renderEventFields = () => (
-        <>
-            <div className={styles.formGroup}>
-                <label htmlFor="title">Event Title *</label>
-                <input
-                    id="title"
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Malang Jazz Festival 2025"
-                    required
-                    className={styles.input}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="eventType">Event Type *</label>
-                <select
-                    id="eventType"
-                    value={eventType}
-                    onChange={(e) => setEventType(e.target.value)}
-                    required
-                    className={styles.input}
-                >
-                    <option value="">Select type...</option>
-                    <option value="Music">Music</option>
-                    <option value="Art">Art</option>
-                    <option value="Sports">Sports</option>
-                    <option value="Festival">Festival</option>
-                    <option value="Workshop">Workshop</option>
-                    <option value="Exhibition">Exhibition</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                    <label htmlFor="eventDate">Date *</label>
-                    <input
-                        id="eventDate"
-                        type="date"
-                        value={eventDate}
-                        onChange={(e) => setEventDate(e.target.value)}
-                        required
-                        className={styles.input}
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="eventTimeStart">Start Time *</label>
-                    <input
-                        id="eventTimeStart"
-                        type="time"
-                        value={eventTimeStart}
-                        onChange={(e) => setEventTimeStart(e.target.value)}
-                        required
-                        className={styles.input}
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="eventTimeEnd">End Time</label>
-                    <input
-                        id="eventTimeEnd"
-                        type="time"
-                        value={eventTimeEnd}
-                        onChange={(e) => setEventTimeEnd(e.target.value)}
-                        className={styles.input}
-                    />
-                </div>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="location">Location *</label>
-                <input
-                    id="location"
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., Lembah Dieng, Malang"
-                    required
-                    className={styles.input}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="eventPrice">Price *</label>
-                <input
-                    id="eventPrice"
-                    type="text"
-                    value={eventPrice}
-                    onChange={(e) => setEventPrice(e.target.value)}
-                    placeholder="e.g., IDR 150K - 300K or Free"
-                    required
-                    className={styles.input}
-                />
-            </div>
-
-            <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                    <label htmlFor="eventCapacity">Expected Capacity</label>
-                    <input
-                        id="eventCapacity"
-                        type="text"
-                        value={eventCapacity}
-                        onChange={(e) => setEventCapacity(e.target.value)}
-                        placeholder="e.g., 5,000 People"
-                        className={styles.input}
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="eventOrganizer">Organizer</label>
-                    <input
-                        id="eventOrganizer"
-                        type="text"
-                        value={eventOrganizer}
-                        onChange={(e) => setEventOrganizer(e.target.value)}
-                        placeholder="e.g., Malang Creative"
-                        className={styles.input}
-                    />
-                </div>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="description">Description *</label>
-                <textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe the event..."
-                    required
-                    rows={4}
-                    className={styles.textarea}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="facilities">Facilities (comma-separated)</label>
-                <input
-                    id="facilities"
-                    type="text"
-                    value={facilities}
-                    onChange={(e) => setFacilities(e.target.value)}
-                    placeholder="e.g., Parking, Food Court, WiFi, Restrooms"
-                    className={styles.input}
-                />
-            </div>
-        </>
-    );
-
-    const renderFoodFields = () => (
-        <>
-            <div className={styles.formGroup}>
-                <label htmlFor="venueName">Venue Name *</label>
-                <input
-                    id="venueName"
-                    type="text"
-                    value={venueName}
-                    onChange={(e) => setVenueName(e.target.value)}
-                    placeholder="e.g., Toko Oen"
-                    required
-                    className={styles.input}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="cuisineType">Cuisine Type *</label>
-                <select
-                    id="cuisineType"
-                    value={cuisineType}
-                    onChange={(e) => setCuisineType(e.target.value)}
-                    required
-                    className={styles.input}
-                >
-                    <option value="">Select cuisine...</option>
-                    <option value="Indonesian">Indonesian</option>
-                    <option value="Chinese">Chinese</option>
-                    <option value="Western">Western</option>
-                    <option value="Japanese">Japanese</option>
-                    <option value="Dutch-Indonesian">Dutch-Indonesian</option>
-                    <option value="Street Food">Street Food</option>
-                    <option value="Bakery">Bakery</option>
-                    <option value="Cafe">Cafe</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="description">Description *</label>
-                <textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe the restaurant, menu highlights, ambiance..."
-                    required
-                    rows={4}
-                    className={styles.textarea}
-                />
-            </div>
-
-            <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                    <label htmlFor="openingHours">Opening Hours *</label>
-                    <input
-                        id="openingHours"
-                        type="text"
-                        value={openingHours}
-                        onChange={(e) => setOpeningHours(e.target.value)}
-                        placeholder="e.g., 09:00 - 21:00 WIB"
-                        required
-                        className={styles.input}
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="priceRange">Price Range *</label>
-                    <select
-                        id="priceRange"
-                        value={priceRange}
-                        onChange={(e) => setPriceRange(e.target.value)}
-                        required
-                        className={styles.input}
-                    >
-                        <option value="">Select range...</option>
-                        <option value="IDR 10K - 30K">$ (IDR 10K - 30K)</option>
-                        <option value="IDR 30K - 100K">$$ (IDR 30K - 100K)</option>
-                        <option value="IDR 100K - 300K">$$$ (IDR 100K - 300K)</option>
-                        <option value="IDR 300K+">$$$$ (IDR 300K+)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="location">Location *</label>
-                <input
-                    id="location"
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., Jl. Basuki Rahmat, Malang"
-                    required
-                    className={styles.input}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label>Payment Methods</label>
-                <div className={styles.checkboxGroup}>
-                    <label className={styles.checkbox}>
-                        <input
-                            type="checkbox"
-                            checked={paymentCash}
-                            onChange={(e) => setPaymentCash(e.target.checked)}
-                        />
-                        <span>Cash</span>
-                    </label>
-                    <label className={styles.checkbox}>
-                        <input
-                            type="checkbox"
-                            checked={paymentCard}
-                            onChange={(e) => setPaymentCard(e.target.checked)}
-                        />
-                        <span>Card</span>
-                    </label>
-                    <label className={styles.checkbox}>
-                        <input
-                            type="checkbox"
-                            checked={paymentEWallet}
-                            onChange={(e) => setPaymentEWallet(e.target.checked)}
-                        />
-                        <span>E-Wallet</span>
-                    </label>
-                </div>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label>Additional Info</label>
-                <div className={styles.checkboxGroup}>
-                    <label className={styles.checkbox}>
-                        <input
-                            type="checkbox"
-                            checked={reservationRequired}
-                            onChange={(e) => setReservationRequired(e.target.checked)}
-                        />
-                        <span>Reservation Recommended</span>
-                    </label>
-                    <label className={styles.checkbox}>
-                        <input
-                            type="checkbox"
-                            checked={parkingAvailable}
-                            onChange={(e) => setParkingAvailable(e.target.checked)}
-                        />
-                        <span>Parking Available</span>
-                    </label>
-                </div>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="facilities">Facilities (comma-separated)</label>
-                <input
-                    id="facilities"
-                    type="text"
-                    value={facilities}
-                    onChange={(e) => setFacilities(e.target.value)}
-                    placeholder="e.g., AC, WiFi, Outdoor Seating, Family Room"
-                    className={styles.input}
-                />
-            </div>
-        </>
-    );
-
-    const renderPlaceFields = () => (
-        <>
-            <div className={styles.formGroup}>
-                <label htmlFor="placeName">Place Name *</label>
-                <input
-                    id="placeName"
-                    type="text"
-                    value={placeName}
-                    onChange={(e) => setPlaceName(e.target.value)}
-                    placeholder="e.g., Kampung Warna Warni"
-                    required
-                    className={styles.input}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="placeCategory">Category *</label>
-                <select
-                    id="placeCategory"
-                    value={placeCategory}
-                    onChange={(e) => setPlaceCategory(e.target.value)}
-                    required
-                    className={styles.input}
-                >
-                    <option value="">Select category...</option>
-                    <option value="Museum">Museum</option>
-                    <option value="Park">Park</option>
-                    <option value="Heritage Site">Heritage Site</option>
-                    <option value="Tourist Spot">Tourist Spot</option>
-                    <option value="Theme Park">Theme Park</option>
-                    <option value="City Square">City Square</option>
-                    <option value="Shopping">Shopping</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="description">Description *</label>
-                <textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe the place, main attractions, best features..."
-                    required
-                    rows={4}
-                    className={styles.textarea}
-                />
-            </div>
-
-            <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                    <label htmlFor="placeOpeningHours">Opening Hours *</label>
-                    <input
-                        id="placeOpeningHours"
-                        type="text"
-                        value={placeOpeningHours}
-                        onChange={(e) => setPlaceOpeningHours(e.target.value)}
-                        placeholder="e.g., 07:00 - 18:00 WIB"
-                        required
-                        className={styles.input}
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="entranceFee">Entrance Fee *</label>
-                    <input
-                        id="entranceFee"
-                        type="text"
-                        value={entranceFee}
-                        onChange={(e) => setEntranceFee(e.target.value)}
-                        placeholder="e.g., IDR 5K - 10K or Free"
-                        required
-                        className={styles.input}
-                    />
-                </div>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="location">Location *</label>
-                <input
-                    id="location"
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., Jodipan, Malang"
-                    required
-                    className={styles.input}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="accessibility">Accessibility *</label>
-                <select
-                    id="accessibility"
-                    value={accessibility}
-                    onChange={(e) => setAccessibility(e.target.value)}
-                    required
-                    className={styles.input}
-                >
-                    <option value="">Select accessibility...</option>
-                    <option value="Family Friendly">Family Friendly</option>
-                    <option value="Wheelchair Accessible">Wheelchair Accessible</option>
-                    <option value="Senior Friendly">Senior Friendly</option>
-                    <option value="All Ages">All Ages</option>
-                    <option value="Adults Only">Adults Only</option>
-                </select>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="bestTimeToVisit">Best Time to Visit</label>
-                <input
-                    id="bestTimeToVisit"
-                    type="text"
-                    value={bestTimeToVisit}
-                    onChange={(e) => setBestTimeToVisit(e.target.value)}
-                    placeholder="e.g., Morning (8-10 AM) for best lighting"
-                    className={styles.input}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label className={styles.checkbox}>
-                    <input
-                        type="checkbox"
-                        checked={instagramWorthy}
-                        onChange={(e) => setInstagramWorthy(e.target.checked)}
-                    />
-                    <span>Instagram-Worthy Photo Spot</span>
-                </label>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label htmlFor="facilities">Facilities (comma-separated)</label>
-                <input
-                    id="facilities"
-                    type="text"
-                    value={facilities}
-                    onChange={(e) => setFacilities(e.target.value)}
-                    placeholder="e.g., Parking, Cafe, WiFi"
-                    className={styles.input}
-                />
-            </div>
-        </>
-    );
-
     return (
-        <div className={styles.overlay} onClick={onClose}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.header}>
-                    <h2>Contribute to Malang Retro Guide</h2>
-                    <button className={styles.closeBtn} onClick={onClose}>✕</button>
-                </div>
-
-                <form onSubmit={handleSubmit} className={styles.form}>
-                    {/* Category Selection */}
-                    <div className={styles.formGroup}>
-                        <label>Category *</label>
-                        <div className={styles.categoryButtons}>
-                            <button
-                                type="button"
-                                className={`${styles.categoryBtn} ${category === 'event' ? styles.active : ''}`}
-                                onClick={() => handleCategoryChange('event')}
-                            >
-                                🎉 Event
-                            </button>
-                            <button
-                                type="button"
-                                className={`${styles.categoryBtn} ${category === 'food' ? styles.active : ''}`}
-                                onClick={() => handleCategoryChange('food')}
-                            >
-                                🍜 Food
-                            </button>
-                            <button
-                                type="button"
-                                className={`${styles.categoryBtn} ${category === 'place' ? styles.active : ''}`}
-                                onClick={() => handleCategoryChange('place')}
-                            >
-                                📍 Place
+        <AnimatePresence>
+            {isOpen && (
+                <div className={styles.overlay}>
+                    <motion.div
+                        className={styles.modal}
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    >
+                        <div className={styles.header}>
+                            <h2 className={styles.title}>Contribute to Malang Guide</h2>
+                            <button onClick={onClose} className={styles.closeBtn}>
+                                <X size={24} />
                             </button>
                         </div>
-                    </div>
 
-                    {/* Dynamic Fields Based on Category */}
-                    {category === 'event' && renderEventFields()}
-                    {category === 'food' && renderFoodFields()}
-                    {category === 'place' && renderPlaceFields()}
+                        <div className={styles.tabs}>
+                            <button
+                                className={`${styles.tab} ${activeTab === 'event' ? styles.activeTab : ''}`}
+                                onClick={() => setActiveTab('event')}
+                            >
+                                <Calendar size={18} /> Event
+                            </button>
+                            <button
+                                className={`${styles.tab} ${activeTab === 'food' ? styles.activeTab : ''}`}
+                                onClick={() => setActiveTab('food')}
+                            >
+                                <Utensils size={18} /> Food
+                            </button>
+                            <button
+                                className={`${styles.tab} ${activeTab === 'place' ? styles.activeTab : ''}`}
+                                onClick={() => setActiveTab('place')}
+                            >
+                                <MapPin size={18} /> Place
+                            </button>
+                        </div>
 
-                    {/* Info Box */}
-                    <div className={styles.infoBox}>
-                        <p>📝 <strong>Anonymous Contribution</strong></p>
-                        <p>Your contribution will be reviewed before publishing. After 5 approved contributions, you'll be eligible to create an account for auto-publish privileges!</p>
-                    </div>
+                        <form onSubmit={handleSubmit} className={styles.form}>
+                            {error && <div className={styles.error}>{error}</div>}
 
-                    {/* Submit Button */}
-                    <div className={styles.actions}>
-                        <button type="button" onClick={onClose} className={styles.cancelBtn}>
-                            Cancel
-                        </button>
-                        <button type="submit" className={styles.submitBtn}>
-                            Submit Contribution
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                            <div className={styles.formGroup}>
+                                <label>Title</label>
+                                <input
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="e.g., Malang Jazz Festival"
+                                    required
+                                    className={styles.input}
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label>Description</label>
+                                <textarea
+                                    value={content}
+                                    onChange={(e) => setContent(e.target.value)}
+                                    placeholder="Tell us about this..."
+                                    required
+                                    className={styles.textarea}
+                                />
+                            </div>
+
+                            <div className={styles.row}>
+                                <div className={styles.formGroup}>
+                                    <label>Location</label>
+                                    <div className={styles.inputIconWrapper}>
+                                        <MapPin size={16} className={styles.inputIcon} />
+                                        <input
+                                            value={location}
+                                            onChange={(e) => setLocation(e.target.value)}
+                                            placeholder="Address or Area"
+                                            required
+                                            className={styles.inputWithIcon}
+                                        />
+                                    </div>
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Tags</label>
+                                    <div className={styles.inputIconWrapper}>
+                                        <Tag size={16} className={styles.inputIcon} />
+                                        <input
+                                            value={tags}
+                                            onChange={(e) => setTags(e.target.value)}
+                                            placeholder="music, jazz, festival"
+                                            className={styles.inputWithIcon}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label>Image URLs (comma separated)</label>
+                                <div className={styles.inputIconWrapper}>
+                                    <Camera size={16} className={styles.inputIcon} />
+                                    <input
+                                        value={imageUrls}
+                                        onChange={(e) => setImageUrls(e.target.value)}
+                                        placeholder="https://example.com/image1.jpg, https://..."
+                                        className={styles.inputWithIcon}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Dynamic Fields based on Type */}
+                            {activeTab === 'event' && (
+                                <>
+                                    <div className={styles.row}>
+                                        <div className={styles.formGroup}>
+                                            <label>Date</label>
+                                            <input
+                                                type="date"
+                                                value={eventDate}
+                                                onChange={(e) => setEventDate(e.target.value)}
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Time</label>
+                                            <input
+                                                type="time"
+                                                value={eventTime}
+                                                onChange={(e) => setEventTime(e.target.value)}
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={styles.row}>
+                                        <div className={styles.formGroup}>
+                                            <label>Organizer</label>
+                                            <input
+                                                value={organizer}
+                                                onChange={(e) => setOrganizer(e.target.value)}
+                                                placeholder="Event organizer"
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Price Range</label>
+                                            <input
+                                                value={priceRange}
+                                                onChange={(e) => setPriceRange(e.target.value)}
+                                                placeholder="Free, Rp 50.000, etc."
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {activeTab === 'food' && (
+                                <>
+                                    <div className={styles.row}>
+                                        <div className={styles.formGroup}>
+                                            <label>Cuisine Type</label>
+                                            <input
+                                                value={cuisineType}
+                                                onChange={(e) => setCuisineType(e.target.value)}
+                                                placeholder="Javanese, Chinese, etc."
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Price Range</label>
+                                            <input
+                                                value={priceRange}
+                                                onChange={(e) => setPriceRange(e.target.value)}
+                                                placeholder="$ - $$$"
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={styles.row}>
+                                        <div className={styles.formGroup}>
+                                            <label>Opening Hours</label>
+                                            <input
+                                                value={openingHours}
+                                                onChange={(e) => setOpeningHours(e.target.value)}
+                                                placeholder="08:00 - 22:00"
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Reservation</label>
+                                            <input
+                                                value={reservationInfo}
+                                                onChange={(e) => setReservationInfo(e.target.value)}
+                                                placeholder="Required/Walk-in"
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {activeTab === 'place' && (
+                                <>
+                                    <div className={styles.row}>
+                                        <div className={styles.formGroup}>
+                                            <label>Entrance Fee</label>
+                                            <input
+                                                value={entranceFee}
+                                                onChange={(e) => setEntranceFee(e.target.value)}
+                                                placeholder="Free or amount"
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            <label>Best Season</label>
+                                            <input
+                                                value={bestSeason}
+                                                onChange={(e) => setBestSeason(e.target.value)}
+                                                placeholder="Dry season, etc."
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={styles.row}>
+                                        <div className={styles.formGroup}>
+                                            <label>Opening Hours</label>
+                                            <input
+                                                value={openingHours}
+                                                onChange={(e) => setOpeningHours(e.target.value)}
+                                                placeholder="08:00 - 17:00"
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                        <div className={styles.formGroup}>
+                                            {/* Empty cell for layout balance */}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            <div className={styles.footer}>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className={styles.cancelBtn}
+                                    disabled={isSubmitting}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className={styles.submitBtn}
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? "Submitting..." : "Submit Contribution"}
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
     );
 }

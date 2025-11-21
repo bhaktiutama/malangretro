@@ -2,13 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Menu, Bell } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Menu, Bell, User as UserIcon, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import styles from "./Navbar.module.css";
 import { cn } from "@/lib/utils";
 
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const router = useRouter();
+    const supabase = createClient();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -16,8 +23,27 @@ export default function Navbar() {
         };
 
         window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+
+        // Check initial session
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            setUser(user);
+        });
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            subscription.unsubscribe();
+        };
+    }, [supabase.auth]);
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        router.refresh();
+    };
 
     return (
         <motion.nav
@@ -42,10 +68,35 @@ export default function Navbar() {
                     <button className={styles.iconButton} aria-label="Search">
                         <Search size={20} strokeWidth={2.5} />
                     </button>
-                    <button className={styles.iconButton} aria-label="Notifications">
-                        <Bell size={20} strokeWidth={2.5} />
-                    </button>
-                    <button className={cn(styles.iconButton, styles.mobileMenuBtn)} aria-label="Menu">
+
+                    {user ? (
+                        <>
+                            <button className={styles.iconButton} aria-label="Notifications">
+                                <Bell size={20} strokeWidth={2.5} />
+                            </button>
+                            <Link href="/profile" className={styles.iconButton} aria-label="Profile">
+                                <UserIcon size={20} strokeWidth={2.5} />
+                            </Link>
+                            <button
+                                className={styles.iconButton}
+                                onClick={handleSignOut}
+                                aria-label="Sign Out"
+                                title="Sign Out"
+                            >
+                                <LogOut size={20} strokeWidth={2.5} />
+                            </button>
+                        </>
+                    ) : (
+                        <Link href="/login" className={styles.loginBtn}>
+                            Sign In
+                        </Link>
+                    )}
+
+                    <button
+                        className={cn(styles.iconButton, styles.mobileMenuBtn)}
+                        aria-label="Menu"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
                         <Menu size={20} strokeWidth={2.5} />
                     </button>
                 </div>

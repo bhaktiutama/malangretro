@@ -3,66 +3,33 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import styles from "./Featured.module.css";
+import type { Post } from "@/lib/feedData";
 
-const FEATURED_ITEMS = [
-    {
-        id: 1,
-        title: "Malang Jazz Festival",
-        date: "24 NOV 2025",
-        location: "Lembah Dieng",
-        image: "https://picsum.photos/seed/jazz/600/800",
-        tag: "HOT!"
-    },
-    {
-        id: 2,
-        title: "Kampung Warna Warni",
-        date: "OPEN DAILY",
-        location: "Jodipan",
-        image: "https://picsum.photos/seed/colors/600/800",
-        tag: "POPULAR"
-    },
-    {
-        id: 3,
-        title: "Museum Angkut Night",
-        date: "EVERY WEEKEND",
-        location: "Batu City",
-        image: "https://picsum.photos/seed/cars/600/800",
-        tag: "MUST VISIT"
-    },
-    {
-        id: 4,
-        title: "Bromo Sunrise Tour",
-        date: "DAILY TRIP",
-        location: "TNBTS",
-        image: "https://picsum.photos/seed/mountain/600/800",
-        tag: "ADVENTURE"
-    },
-    {
-        id: 5,
-        title: "Kayutangan Heritage",
-        date: "OPEN 24H",
-        location: "Jl. Basuki Rahmat",
-        image: "https://picsum.photos/seed/street/600/800",
-        tag: "HERITAGE"
-    }
-];
+interface FeaturedProps {
+    posts: Post[];
+}
 
-export default function Featured() {
+export default function Featured({ posts }: FeaturedProps) {
     const [activeIndex, setActiveIndex] = useState(0);
 
+    // Fallback if no posts
+    if (!posts || posts.length === 0) {
+        return null;
+    }
+
     const nextSlide = () => {
-        setActiveIndex((prev) => (prev + 1) % FEATURED_ITEMS.length);
+        setActiveIndex((prev) => (prev + 1) % posts.length);
     };
 
     const prevSlide = () => {
-        setActiveIndex((prev) => (prev - 1 + FEATURED_ITEMS.length) % FEATURED_ITEMS.length);
+        setActiveIndex((prev) => (prev - 1 + posts.length) % posts.length);
     };
 
     const getCardStyle = (index: number) => {
-        const total = FEATURED_ITEMS.length;
+        const total = posts.length;
         // Calculate distance from active index, handling wrap-around
         let diff = (index - activeIndex + total) % total;
 
@@ -120,23 +87,27 @@ export default function Featured() {
                 </div>
 
                 <div className={styles.carouselWrapper}>
-                    {FEATURED_ITEMS.map((item, index) => {
+                    {posts.map((post, index) => {
                         const style = getCardStyle(index);
+                        const imageUrl = post.images?.[0] || `https://picsum.photos/seed/${post.id}/600/800`;
+
                         return (
                             <motion.div
-                                key={item.id}
+                                key={post.id}
                                 className={styles.cardWrapper}
                                 initial={false}
                                 animate={style}
                                 transition={{ duration: 0.4, ease: "easeInOut" }}
                             >
-                                <Link href="/feed?filter=event" className={styles.cardLink}>
+                                <Link href={`/${post.type === 'event' ? 'events' : post.type}/${post.id}`} className={styles.cardLink}>
                                     <div className={styles.card}>
-                                        <div className={styles.badge}>{item.tag}</div>
+                                        <div className={styles.badge}>
+                                            {post.tags?.[0] || (post.trending ? "TRENDING" : "FEATURED")}
+                                        </div>
                                         <div className={styles.cardImage}>
                                             <Image
-                                                src={item.image}
-                                                alt={item.title}
+                                                src={imageUrl}
+                                                alt={post.title}
                                                 fill
                                                 style={{ objectFit: "cover" }}
                                                 sizes="(max-width: 768px) 100vw, 400px"
@@ -144,13 +115,17 @@ export default function Featured() {
                                         </div>
                                         <div className={styles.cardContent}>
                                             <div>
-                                                <h3 className={styles.cardTitle}>{item.title}</h3>
+                                                <h3 className={styles.cardTitle}>{post.title}</h3>
                                                 <div className={styles.cardLocation}>
                                                     <MapPin size={14} />
-                                                    {item.location}
+                                                    {post.location}
                                                 </div>
                                             </div>
-                                            <div className={styles.cardDate}>{item.date}</div>
+                                            <div className={styles.cardDate}>
+                                                {post.event_date
+                                                    ? new Date(post.event_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }).toUpperCase()
+                                                    : (post.opening_hours || "OPEN DAILY")}
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>
@@ -164,7 +139,7 @@ export default function Featured() {
                         <ArrowLeft size={24} />
                     </button>
                     <div className={styles.dots}>
-                        {FEATURED_ITEMS.map((_, index) => (
+                        {posts.map((_, index) => (
                             <button
                                 key={index}
                                 className={`${styles.dot} ${index === activeIndex ? styles.dotActive : ''}`}

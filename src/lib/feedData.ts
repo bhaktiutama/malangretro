@@ -19,25 +19,48 @@ export interface Post {
         lng: number;
     };
     tags: string[];
-    
+
     // Community metrics (replacing social metrics)
     views: number;
     helpfulVotes: number;
     visitCount?: number;
-    
+
     // Verification & quality
     verified: boolean;
     isOfficial: boolean;
     trending: boolean;
-    
+
     // Contributor info (Option B)
     contributor?: Contributor;
     isAnonymous: boolean;
-    
+
     // Metadata
     timestamp: string;
     lastUpdated?: string;
     status?: 'active' | 'closed' | 'upcoming';
+
+    // Common fields
+    opening_hours?: string;
+    price_range?: string;
+    facilities?: unknown;
+
+    // Event-specific fields
+    event_date?: string;
+    event_start_time?: string;
+    event_end_time?: string;
+    capacity?: number;
+    organizer?: string;
+
+    // Food-specific fields
+    cuisine_type?: string;
+    reservation_info?: string;
+    payment_methods?: unknown;
+
+    // Place-specific fields
+    entrance_fee?: string;
+    photo_spots_count?: string;
+    best_season?: string;
+    accessibility?: string;
 }
 
 export const feedPosts: Post[] = [
