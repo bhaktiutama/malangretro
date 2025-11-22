@@ -46,13 +46,13 @@ export async function createPostImages(
         display_order: index
     }))
 
-    const { error } = await supabase
+    const { error: insertError } = await (supabase as any)
         .from('post_images')
         .insert(postImages)
 
-    if (error) {
-        console.error('Error creating post images:', error)
-        throw new Error(`Failed to create post images: ${error.message}`)
+    if (insertError) {
+        console.error('Error creating post images:', insertError)
+        throw new Error(`Failed to create post images: ${insertError.message}`)
     }
 }
 

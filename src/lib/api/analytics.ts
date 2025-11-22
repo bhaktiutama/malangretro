@@ -10,7 +10,7 @@ export async function trackPostView(postId: string) {
     // Use fingerprint only for anonymous users
     const fingerprint = user ? null : await getBrowserFingerprint()
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
         .from('post_views')
         .insert({
             post_id: postId,
@@ -31,7 +31,7 @@ export async function toggleHelpfulVote(postId: string) {
     const fingerprint = user ? null : await getBrowserFingerprint()
 
     // Check if already voted
-    const { data: existingVote } = await supabase
+    const { data: existingVote } = await (supabase as any)
         .from('helpful_votes')
         .select('id')
         .eq('post_id', postId)
@@ -44,7 +44,7 @@ export async function toggleHelpfulVote(postId: string) {
 
     if (existingVote) {
         // Remove vote (toggle off)
-        await supabase
+        await (supabase as any)
             .from('helpful_votes')
             .delete()
             .eq('id', existingVote.id)
@@ -52,7 +52,7 @@ export async function toggleHelpfulVote(postId: string) {
         return { voted: false }
     } else {
         // Add vote (toggle on)
-        await supabase
+        await (supabase as any)
             .from('helpful_votes')
             .insert({
                 post_id: postId,
@@ -70,7 +70,7 @@ export async function checkIfVoted(postId: string): Promise<boolean> {
 
     const fingerprint = user ? null : await getBrowserFingerprint()
 
-    const { data } = await supabase
+    const { data } = await (supabase as any)
         .from('helpful_votes')
         .select('id')
         .eq('post_id', postId)

@@ -29,7 +29,7 @@ export default function ProfileHeader({ profile, user }: ProfileHeaderProps) {
     const handleSave = async () => {
         setLoading(true);
         try {
-            const { error } = await supabase
+            const { error } = await (supabase as any)
                 .from('profiles')
                 .upsert({
                     id: user.id,

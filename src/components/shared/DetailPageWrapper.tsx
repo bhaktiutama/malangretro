@@ -3,11 +3,11 @@
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 
-interface EventDetailClientProps {
+interface DetailPageWrapperProps {
     children: ReactNode;
 }
 
-export default function EventDetailClient({ children }: EventDetailClientProps) {
+export default function DetailPageWrapper({ children }: DetailPageWrapperProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}

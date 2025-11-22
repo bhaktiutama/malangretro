@@ -6,7 +6,8 @@ export async function trackPostViewAction(postId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    const { error } = await supabase
+    // Note: Type cast needed due to Supabase SSR type inference limitations
+    const { error } = await (supabase as any)
         .from('post_views')
         .insert({
             post_id: postId,

@@ -1,0 +1,22 @@
+.container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.stat {
+    text-align: center;
+}
+
+.value {
+    font-weight: bold;
+    color: var(--color-accent-brown);
+}

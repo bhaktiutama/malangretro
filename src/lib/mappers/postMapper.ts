@@ -118,3 +118,25 @@ export function parsePaymentMethods(paymentMethods: unknown): string[] {
     if (Array.isArray(paymentMethods)) return paymentMethods as string[]
     return []
 }
+
+/**
+ * Format event date to Indonesian locale
+ */
+export function formatEventDate(date: string | undefined): string {
+    if (!date) return 'TBA'
+
+    return new Date(date).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    })
+}
+
+/**
+ * Format event time range
+ */
+export function formatEventTime(startTime?: string, endTime?: string): string {
+    if (!startTime || !endTime) return 'TBA'
+    return `${startTime} - ${endTime} WIB`
+}
+

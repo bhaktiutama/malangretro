@@ -1,0 +1,21 @@
+.container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 auto;
+    font-family: var(--font-inter);
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.button:hover {
+    color: var(--color-accent-brown);
+}

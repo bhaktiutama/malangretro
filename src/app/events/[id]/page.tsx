@@ -2,10 +2,16 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { MapPin, Calendar, Clock, Ticket, Share2 } from "lucide-react";
+import { MapPin, Calendar, Clock, Ticket } from "lucide-react";
 import { getPostById } from "@/lib/api/posts";
 import { trackPostViewAction } from "@/app/actions/analytics";
-import EventDetailClient from "./EventDetailClient";
+import { formatEventDate, formatEventTime } from "@/lib/mappers/postMapper";
+import DetailPageWrapper from "@/components/shared/DetailPageWrapper";
+import ContributorCard from "@/components/shared/ContributorCard";
+import StatsDisplay from "@/components/shared/StatsDisplay";
+import ShareButton from "@/components/shared/ShareButton";
+import ImageGallery from "@/components/shared/ImageGallery";
+import FacilityTags from "@/components/shared/FacilityTags";
 import styles from "./EventDetail.module.css";
 
 interface EventDetailPageProps {
@@ -28,26 +34,16 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         console.error('Error tracking view:', error);
     }
 
-    // Format date
-    const eventDate = post.event_date
-        ? new Date(post.event_date).toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        })
-        : 'TBA';
-
-    // Format time
-    const eventTime = post.event_start_time && post.event_end_time
-        ? `${post.event_start_time} - ${post.event_end_time} WIB`
-        : 'TBA';
+    // Format date and time using helpers
+    const eventDate = formatEventDate(post.event_date);
+    const eventTime = formatEventTime(post.event_start_time, post.event_end_time);
 
     return (
         <main>
             <Navbar />
 
             <div style={{ paddingTop: "var(--header-height)", minHeight: "100vh" }}>
-                <EventDetailClient>
+                <DetailPageWrapper>
                     <div className={styles.container}>
                         <div className={styles.header}>
                             <h1 className={styles.title}>{post.title}</h1>
@@ -58,72 +54,23 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                             </div>
                         </div>
 
-                        <div className={styles.gallery}>
-                            <div className={styles.mainImage}>
-                                <Image
-                                    src={post.images[0] || 'https://picsum.photos/seed/event/1200/800'}
-                                    alt={post.title}
-                                    fill
-                                    style={{ objectFit: "cover" }}
-                                    priority
-                                />
-                            </div>
-                            {post.images.length > 1 && (
-                                <div className={styles.sideImages}>
-                                    {post.images.slice(1, 3).map((img, idx) => (
-                                        <div key={idx} className={styles.sideImage} style={{ position: "relative" }}>
-                                            <Image
-                                                src={img}
-                                                alt={`${post.title} - Image ${idx + 2}`}
-                                                fill
-                                                style={{ objectFit: "cover" }}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <ImageGallery
+                            images={post.images.length > 0 ? post.images : ['https://picsum.photos/seed/event/1200/800']}
+                            title={post.title}
+                            galleryClassName={styles.gallery}
+                            mainImageClassName={styles.mainImage}
+                            sideImagesClassName={styles.sideImages}
+                            sideImageClassName={styles.sideImage}
+                        />
 
                         <div className={styles.contentGrid}>
                             <div className={styles.description}>
                                 <p style={{ whiteSpace: 'pre-wrap' }}>{post.content}</p>
 
-                                {post.contributor && !post.isAnonymous && (
-                                    <div style={{
-                                        marginTop: '40px',
-                                        padding: '20px',
-                                        background: '#f9f9f9',
-                                        borderRadius: 'var(--radius-md)',
-                                        border: '1px solid var(--color-accent-brown)'
-                                    }}>
-                                        <h4 style={{
-                                            fontFamily: 'var(--font-bebas)',
-                                            fontSize: '1.2rem',
-                                            color: 'var(--color-accent-brown)',
-                                            marginBottom: '10px'
-                                        }}>
-                                            Contributed by
-                                        </h4>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <span>Contributor #{post.contributor.id.slice(0, 8)}</span>
-                                            {post.contributor.badge && (
-                                                <span style={{
-                                                    background: 'var(--color-accent-mustard)',
-                                                    color: '#fff',
-                                                    padding: '2px 8px',
-                                                    borderRadius: '4px',
-                                                    fontSize: '0.8rem',
-                                                    textTransform: 'uppercase'
-                                                }}>
-                                                    {post.contributor.badge}
-                                                </span>
-                                            )}
-                                            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                                {post.contributor.contributionCount} contributions
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
+                                <ContributorCard
+                                    contributor={post.contributor}
+                                    isAnonymous={post.isAnonymous}
+                                />
                             </div>
 
                             <aside>
@@ -184,48 +131,26 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                                         </div>
                                     )}
 
-                                    {post.facilities && Array.isArray(post.facilities) && post.facilities.length > 0 && (
-                                        <div className={styles.facilities}>
-                                            <h4 style={{ fontFamily: "var(--font-bebas)", fontSize: "1.2rem", color: "var(--color-accent-brown)", marginBottom: "15px" }}>Facilities</h4>
-                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                                                {(post.facilities as string[]).map((facility: string, idx: number) => (
-                                                    <div key={idx} className={styles.facilityTag}>
-                                                        {facility}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
+                                    {post.facilities && Array.isArray(post.facilities) && post.facilities.length > 0 ? (
+                                        <FacilityTags
+                                            facilities={post.facilities.filter((f): f is string => typeof f === 'string')}
+                                            containerClassName={styles.facilities}
+                                            tagClassName={styles.facilityTag}
+                                        />
+                                    ) : null}
 
-                                    <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                                        <div style={{ display: "flex", justifyContent: "space-around", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
-                                            <div style={{ textAlign: "center" }}>
-                                                <div style={{ fontWeight: "bold", color: "var(--color-accent-brown)" }}>{post.views}</div>
-                                                <div>Views</div>
-                                            </div>
-                                            <div style={{ textAlign: "center" }}>
-                                                <div style={{ fontWeight: "bold", color: "var(--color-accent-brown)" }}>{post.helpfulVotes}</div>
-                                                <div>Helpful</div>
-                                            </div>
-                                            {post.visitCount !== undefined && (
-                                                <div style={{ textAlign: "center" }}>
-                                                    <div style={{ fontWeight: "bold", color: "var(--color-accent-brown)" }}>{post.visitCount}</div>
-                                                    <div>Visits</div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                    <StatsDisplay
+                                        views={post.views}
+                                        helpfulVotes={post.helpfulVotes}
+                                        visitCount={post.visitCount}
+                                    />
 
-                                    <div style={{ marginTop: "20px", textAlign: "center" }}>
-                                        <button style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", margin: "0 auto", fontFamily: "var(--font-inter)", fontSize: "0.9rem", color: "var(--color-text-muted)" }}>
-                                            <Share2 size={16} /> Share Event
-                                        </button>
-                                    </div>
+                                    <ShareButton label="Share Event" />
                                 </div>
                             </aside>
                         </div>
                     </div>
-                </EventDetailClient>
+                </DetailPageWrapper>
             </div>
 
             <Footer />

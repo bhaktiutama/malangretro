@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Post, PostType } from '@/lib/feedData'
 import { mapPostToUI, type PostWithRelations } from '@/lib/mappers/postMapper'
+import { POST_WITH_RELATIONS_SELECT } from './queryHelpers'
 
 export interface PostFilters {
     type?: PostType
@@ -56,23 +57,7 @@ export async function getPosts(filters?: PostFilters): Promise<Post[]> {
 
     let query = supabase
         .from('posts')
-        .select(`
-            *,
-            post_images (
-                id,
-                image_url,
-                storage_path,
-                display_order
-            ),
-            profiles (
-                id,
-                username,
-                display_name,
-                avatar_url,
-                badge,
-                contribution_count
-            )
-        `)
+        .select(POST_WITH_RELATIONS_SELECT)
 
     // Apply filters
     if (filters?.type) {
@@ -125,23 +110,7 @@ export async function getPostById(id: string): Promise<Post | null> {
 
     const { data, error } = await supabase
         .from('posts')
-        .select(`
-            *,
-            post_images (
-                id,
-                image_url,
-                storage_path,
-                display_order
-            ),
-            profiles (
-                id,
-                username,
-                display_name,
-                avatar_url,
-                badge,
-                contribution_count
-            )
-        `)
+        .select(POST_WITH_RELATIONS_SELECT)
         .eq('id', id)
         .single()
 
@@ -167,23 +136,7 @@ export async function searchPosts(query: string, filters?: PostFilters): Promise
 
     let dbQuery = supabase
         .from('posts')
-        .select(`
-            *,
-            post_images (
-                id,
-                image_url,
-                storage_path,
-                display_order
-            ),
-            profiles (
-                id,
-                username,
-                display_name,
-                avatar_url,
-                badge,
-                contribution_count
-            )
-        `)
+        .select(POST_WITH_RELATIONS_SELECT)
         .textSearch('search_vector', query, {
             type: 'websearch',
             config: 'indonesian'
@@ -216,7 +169,7 @@ export async function searchPosts(query: string, filters?: PostFilters): Promise
 export async function createPost(postData: CreatePostData): Promise<Post> {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
         .from('posts')
         .insert({
             type: postData.type,
@@ -252,23 +205,7 @@ export async function createPost(postData: CreatePostData): Promise<Post> {
             contributor_id: postData.contributor_id,
             is_anonymous: postData.is_anonymous ?? true
         })
-        .select(`
-            *,
-            post_images (
-                id,
-                image_url,
-                storage_path,
-                display_order
-            ),
-            profiles (
-                id,
-                username,
-                display_name,
-                avatar_url,
-                badge,
-                contribution_count
-            )
-        `)
+        .select(POST_WITH_RELATIONS_SELECT)
         .single()
 
     if (error) {
@@ -285,7 +222,7 @@ export async function createPost(postData: CreatePostData): Promise<Post> {
 export async function updatePost(id: string, postData: Partial<CreatePostData>): Promise<Post> {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
         .from('posts')
         .update({
             title: postData.title,
@@ -317,23 +254,7 @@ export async function updatePost(id: string, postData: Partial<CreatePostData>):
             facilities: postData.facilities
         })
         .eq('id', id)
-        .select(`
-            *,
-            post_images (
-                id,
-                image_url,
-                storage_path,
-                display_order
-            ),
-            profiles (
-                id,
-                username,
-                display_name,
-                avatar_url,
-                badge,
-                contribution_count
-            )
-        `)
+        .select(POST_WITH_RELATIONS_SELECT)
         .single()
 
     if (error) {

@@ -40,7 +40,7 @@ export async function getProfile(userId: string): Promise<DbProfile | null> {
 export async function upsertProfile(userId: string, profileData: ProfileData): Promise<DbProfile> {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
         .from('profiles')
         .upsert({
             id: userId,
@@ -66,24 +66,24 @@ export async function upsertProfile(userId: string, profileData: ProfileData): P
 export async function getContributorStats(userId: string) {
     const supabase = await createClient()
 
-    const { data: profile } = await supabase
+    const { data: profile } = await (supabase as any)
         .from('profiles')
         .select('contribution_count, badge')
         .eq('id', userId)
         .single()
 
-    const { count: postsCount } = await supabase
+    const { count: postsCount } = await (supabase as any)
         .from('posts')
         .select('*', { count: 'exact', head: true })
         .eq('contributor_id', userId)
 
-    const { data: posts } = await supabase
+    const { data: posts } = await (supabase as any)
         .from('posts')
         .select('views, helpful_votes')
         .eq('contributor_id', userId)
 
-    const totalViews = posts?.reduce((sum, post) => sum + post.views, 0) || 0
-    const totalVotes = posts?.reduce((sum, post) => sum + post.helpful_votes, 0) || 0
+    const totalViews = posts?.reduce((sum: number, post: any) => sum + post.views, 0) || 0
+    const totalVotes = posts?.reduce((sum: number, post: any) => sum + post.helpful_votes, 0) || 0
 
     return {
         contributionCount: profile?.contribution_count || 0,
